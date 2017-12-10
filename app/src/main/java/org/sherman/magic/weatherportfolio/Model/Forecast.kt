@@ -7,7 +7,6 @@ import java.io.Serializable
  */
 public class Forecast : Serializable {
     var forecastDate: String? = null
-    val forecastDay: String? = null
     var forecastHighTemp: String? = null
     var forecastLowTemp: String? = null
     var forecastWeatherDescription: String? = null
