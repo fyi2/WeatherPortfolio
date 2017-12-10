@@ -1,5 +1,6 @@
 package org.sherman.magic.weatherportfolio.Activities
 
+import android.content.SharedPreferences
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
@@ -22,10 +23,15 @@ class MainActivity : AppCompatActivity() {
     lateinit var forecastList:ArrayList<Forecast>
     var forecastAdapter:WeatherAdapter? = null
     var layoutManager: RecyclerView.LayoutManager? = null
+    var sharedPreferences: SharedPreferences? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        sharedPreferences = getSharedPreferences("org.sherman.magic.weatherportfolio", android.content.Context.MODE_PRIVATE)
+        val chosenCity = sharedPreferences!!.getString("chosenLocation", "Marlborough MA")
+        locationNameId.setText(chosenCity.toString())
+        runSearch(locationNameId)
     }
 
     fun runSearch(view:View){
@@ -43,7 +49,7 @@ class MainActivity : AppCompatActivity() {
                 var forecasts = response?.body()?.query?.results?.channel?.item?.forecast
                 if (forecasts != null){
                     // Set Up the main panel
-                    currentDateId.text = date
+                    currentDateId.text = trimDate(date!!)
                     currentTempId.text = temperature+"F"
                     locationTextViewId.text = city+",\n"+region
                     val url = getURL(html!!)
@@ -54,7 +60,6 @@ class MainActivity : AppCompatActivity() {
 
                     // Set Up the recycler View
                     for (forecast in forecasts){
-                        Log.d(DEBUG, forecast.date)
                         var fc = Forecast()
                         fc.forecastLowTemp = forecast.low
                         fc.forecastHighTemp = forecast.high
@@ -78,6 +83,9 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+        // Update Shared Preferences
+        sharedPreferences?.edit()?.putString("chosenLocation",locationNameId.text.toString() )?.apply()
+
         retriver.getForecast(callback, locationNameId.text.toString())
 
     }
@@ -86,5 +94,10 @@ class MainActivity : AppCompatActivity() {
         val bits = url.split('\"')
         Log.d(DEBUG,bits[1])
         return bits[1]
+    }
+
+    fun trimDate(date:String):String {
+        val elements = date.split(" ")
+        return elements[0]+" "+elements[1]+" "+elements[2]+" "+elements[3]
     }
 }
